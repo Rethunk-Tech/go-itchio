@@ -1,2 +1,2 @@
-// Package itchio a client for itch.io game pages and uploads, as mod managers read them.
+// Package itchio is a client for the itch.io server-side API and its game page addresses.
 package itchio
