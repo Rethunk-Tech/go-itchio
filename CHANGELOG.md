@@ -6,6 +6,8 @@ Notable changes to `go-itchio`. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-08
+
 ### Added
 
 - `Client` over the itch.io server-side API with the user's own key: `Me`, `SearchGames`, `Uploads` and
@@ -14,4 +16,5 @@ Notable changes to `go-itchio`. The format follows
   answers carrying an `invalid key` error.
 - Page helpers `ValidPage`, `PageURL` and `ParsePageURL` for `<user>.itch.io/<game>` page ids.
 
-[Unreleased]: https://github.com/Rethunk-Tech/go-itchio/commits/main
+[Unreleased]: https://github.com/Rethunk-Tech/go-itchio/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Rethunk-Tech/go-itchio/releases/tag/v0.1.0
