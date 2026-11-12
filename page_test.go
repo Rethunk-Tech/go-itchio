@@ -26,6 +26,9 @@ func FuzzParsePageURL(f *testing.F) {
 		if !ValidPage(id) {
 			t.Fatalf("ParsePageURL(%q) = %q, not a ValidPage", text, id)
 		}
+		if len(id) > 140 {
+			t.Fatalf("ParsePageURL(%q) = %q, longer than user/game bounds", text, id)
+		}
 		canon := PageURL(id)
 		if canon == "" {
 			t.Fatalf("ValidPage(%q) but PageURL is empty", id)
@@ -54,6 +57,9 @@ func FuzzValidPage(f *testing.F) {
 		}
 		if !valid {
 			return
+		}
+		if len(id) > 140 {
+			t.Fatalf("ValidPage(%q) with id longer than user/game bounds", id)
 		}
 		got, ok := ParsePageURL(u)
 		if !ok || got != id {
