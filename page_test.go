@@ -49,6 +49,7 @@ func FuzzValidPage(f *testing.F) {
 	f.Add("user/game/extra")
 	f.Add("/game")
 	f.Add("user/")
+	f.Add("www/0")
 	f.Fuzz(func(t *testing.T, id string) {
 		valid := ValidPage(id)
 		u := PageURL(id)

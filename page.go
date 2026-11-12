@@ -16,7 +16,7 @@ var (
 // ValidPage reports whether id is a page name as ParsePageURL returns it.
 func ValidPage(id string) bool {
 	user, game, ok := strings.Cut(id, "/")
-	return ok && userPattern.MatchString(user) && slugPattern.MatchString(game)
+	return ok && user != "www" && userPattern.MatchString(user) && slugPattern.MatchString(game)
 }
 
 // PageURL is the canonical address of a page, or "" for an id that is not one.
@@ -37,11 +37,11 @@ func ParsePageURL(text string) (string, bool) {
 		return "", false
 	}
 	user, found := strings.CutSuffix(strings.ToLower(u.Hostname()), ".itch.io")
-	if !found || user == "www" || !userPattern.MatchString(user) {
+	if !found {
 		return "", false
 	}
 	game, ok := strings.CutPrefix(strings.TrimSuffix(u.EscapedPath(), "/"), "/")
-	if !ok || !slugPattern.MatchString(game) {
+	if !ok || !ValidPage(user+"/"+game) {
 		return "", false
 	}
 	return user + "/" + game, true
