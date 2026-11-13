@@ -133,6 +133,12 @@ func errorsFrom(raw []byte) error {
 	return nil
 }
 
+var errBadID = errors.New("itchio: the id is empty or a path segment")
+
+// validID refuses an id that PathEscape leaves as an empty or dot segment, which would address another endpoint
+// with the caller's key.
+func validID(id string) bool { return id != "" && id != "." && id != ".." }
+
 // Me reads the key's account.
 func (c *Client) Me(ctx context.Context) (User, error) {
 	var out struct {
@@ -166,6 +172,9 @@ func (c *Client) Uploads(ctx context.Context, gameID string) ([]Upload, error) {
 	var out struct {
 		Uploads []Upload `json:"uploads"`
 	}
+	if !validID(gameID) {
+		return nil, errBadID
+	}
 	if err := c.get(ctx, "/games/"+url.PathEscape(gameID)+"/uploads", nil, &out); err != nil {
 		return nil, err
 	}
@@ -178,6 +187,9 @@ func (c *Client) Uploads(ctx context.Context, gameID string) ([]Upload, error) {
 func (c *Client) DownloadURL(ctx context.Context, uploadID string) (string, error) {
 	if c.key == "" {
 		return "", ErrNeedsKey
+	}
+	if !validID(uploadID) {
+		return "", errBadID
 	}
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()

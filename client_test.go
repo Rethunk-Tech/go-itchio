@@ -255,3 +255,16 @@ func TestDownloadURLRefusesAnInsecureLocation(t *testing.T) {
 		t.Fatalf("link = %q, want an error", link)
 	}
 }
+
+func TestIDsThatEscapeThePathAreRefused(t *testing.T) {
+	t.Parallel()
+	c := fake(t)
+	for _, id := range []string{"", ".", ".."} {
+		if _, err := c.Uploads(t.Context(), id); !errors.Is(err, errBadID) {
+			t.Errorf("uploads %q = %v", id, err)
+		}
+		if _, err := c.DownloadURL(t.Context(), id); !errors.Is(err, errBadID) {
+			t.Errorf("download %q = %v", id, err)
+		}
+	}
+}
