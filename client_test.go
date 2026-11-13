@@ -213,3 +213,45 @@ func TestPageHelpers(t *testing.T) {
 		}
 	}
 }
+
+func redirectServer(t *testing.T, tls bool, loc string) *httptest.Server {
+	t.Helper()
+	h := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Location", loc)
+		w.WriteHeader(http.StatusFound)
+	})
+	srv := httptest.NewServer(h)
+	if tls {
+		srv = httptest.NewTLSServer(h)
+	}
+	t.Cleanup(srv.Close)
+	return srv
+}
+
+func TestDownloadURLIgnoresTheCallersRedirectPolicy(t *testing.T) {
+	t.Parallel()
+	srv := redirectServer(t, false, "https://cdn.itch.io/cool.zip")
+	hc := &http.Client{CheckRedirect: httpkit.SameOrigin}
+	link, err := New(Config{Key: "k", BaseURL: srv.URL, HTTP: hc}).DownloadURL(t.Context(), "2")
+	if err != nil || link != "https://cdn.itch.io/cool.zip" {
+		t.Fatalf("link = %q, %v", link, err)
+	}
+}
+
+func TestDownloadURLResolvesARelativeLocation(t *testing.T) {
+	t.Parallel()
+	srv := redirectServer(t, false, "/files/cool.zip?sig=x")
+	link, err := New(Config{Key: "k", BaseURL: srv.URL}).DownloadURL(t.Context(), "2")
+	if err != nil || link != srv.URL+"/files/cool.zip?sig=x" {
+		t.Fatalf("link = %q, %v", link, err)
+	}
+}
+
+func TestDownloadURLRefusesAnInsecureLocation(t *testing.T) {
+	t.Parallel()
+	srv := redirectServer(t, true, "http://cdn.itch.io/cool.zip")
+	c := New(Config{Key: "k", BaseURL: srv.URL, HTTP: srv.Client()})
+	if link, err := c.DownloadURL(t.Context(), "2"); err == nil {
+		t.Fatalf("link = %q, want an error", link)
+	}
+}

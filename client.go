@@ -58,10 +58,13 @@ type Client struct {
 
 // New builds a Client.
 func New(cfg Config) *Client {
+	// The caller's CheckRedirect must not run here: an error from it would fail the very redirect this client reads.
+	dl := httpkit.WithRedirect(cfg.HTTP, httpkit.NoFollow)
+	dl.CheckRedirect = httpkit.NoFollow
 	return &Client{
 		key: strings.TrimSpace(cfg.Key), base: strings.TrimRight(cmp.Or(cfg.BaseURL, BaseURL), "/"),
 		agent: cfg.UserAgent, hc: httpkit.WithRedirect(cfg.HTTP, httpkit.SameOrigin),
-		dl: httpkit.WithRedirect(cfg.HTTP, httpkit.NoFollow),
+		dl: dl,
 	}
 }
 
@@ -196,7 +199,7 @@ func (c *Client) DownloadURL(ctx context.Context, uploadID string) (string, erro
 			return nil
 		})
 	if link != "" {
-		return link, nil
+		return c.resolveLink(req.URL, link)
 	}
 	if err != nil {
 		return "", mapStatus(err)
@@ -205,4 +208,17 @@ func (c *Client) DownloadURL(ctx context.Context, uploadID string) (string, erro
 		return "", err
 	}
 	return "", &httpkit.StatusError{Code: code, Status: status}
+}
+
+// resolveLink makes a Location absolute against the request and refuses one that leaves https for another scheme, so
+// the signed address is never fetched in the clear when the API was reached over TLS.
+func (c *Client) resolveLink(from *url.URL, loc string) (string, error) {
+	u, err := from.Parse(loc)
+	if err != nil {
+		return "", fmt.Errorf("itchio: the download address is not a URL: %w", err)
+	}
+	if from.Scheme == "https" && u.Scheme != "https" {
+		return "", fmt.Errorf("itchio: refusing a download address on %s://", u.Scheme)
+	}
+	return u.String(), nil
 }
