@@ -256,6 +256,35 @@ func TestDownloadURLRefusesAnInsecureLocation(t *testing.T) {
 	}
 }
 
+func TestABaseURLThatIsNotARequestURLIsReported(t *testing.T) {
+	t.Parallel()
+	c := New(Config{Key: "k", BaseURL: "http://["})
+	ctx := t.Context()
+	if _, err := c.Me(ctx); err == nil {
+		t.Fatal("me accepted a base that is not a URL")
+	}
+	if _, err := c.DownloadURL(ctx, "2"); err == nil {
+		t.Fatal("download accepted a base that is not a URL")
+	}
+}
+
+func TestADownloadLocationThatIsNotAURLIsRefused(t *testing.T) {
+	t.Parallel()
+	// 300 is a 3xx Go's client does not follow, so Location is read even when it is not a URL.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Location", "%zz")
+		w.WriteHeader(http.StatusMultipleChoices)
+	}))
+	t.Cleanup(srv.Close)
+	link, err := New(Config{Key: "k", BaseURL: srv.URL}).DownloadURL(t.Context(), "2")
+	if err == nil {
+		t.Fatalf("link = %q, want an error", link)
+	}
+	if !strings.Contains(err.Error(), "not a URL") {
+		t.Fatalf("err = %v, want a download address that is not a URL", err)
+	}
+}
+
 func TestIDsThatEscapeThePathAreRefused(t *testing.T) {
 	t.Parallel()
 	c := fake(t)
