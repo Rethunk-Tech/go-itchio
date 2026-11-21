@@ -6,6 +6,8 @@ Notable changes to `go-itchio`. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-21
+
 ### Fixed
 
 - An empty or dot-segment id is refused before it reaches the API path.
@@ -22,5 +24,6 @@ Notable changes to `go-itchio`. The format follows
   answers carrying an `invalid key` error.
 - Page helpers `ValidPage`, `PageURL` and `ParsePageURL` for `<user>.itch.io/<game>` page ids.
 
-[Unreleased]: https://github.com/Rethunk-Tech/go-itchio/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Rethunk-Tech/go-itchio/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Rethunk-Tech/go-itchio/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Rethunk-Tech/go-itchio/releases/tag/v0.1.0
