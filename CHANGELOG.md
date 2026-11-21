@@ -6,6 +6,12 @@ Notable changes to `go-itchio`. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- An empty or dot-segment id is refused before it reaches the API path.
+- `DownloadURL` ignores the caller's redirect policy, resolves a relative `Location` and refuses an https downgrade.
+- `ValidPage` rejects the `www` host, matching `ParsePageURL`.
+
 ## [0.1.0] - 2026-11-08
 
 ### Added
